@@ -35,86 +35,26 @@
 
 #include "leds.h"
 
-/*******************************************************************************
- * Definitions
- ******************************************************************************/
-/* The Flextimer instance/channel used for board */
-#define BOARD_TPM0_BASEADDR TPM0
-#define BOARD_TPM2_BASEADDR TPM2
-#define BOARD_FIRST_TPM_CHANNEL 0U
-#define BOARD_SECOND_TPM_CHANNEL 1U
-
-/* Get source clock for TPM driver */
-#define TPM_SOURCE_CLOCK CLOCK_GetFreq(kCLOCK_PllFllSelClk)
-
-/*******************************************************************************
- * Prototypes
- ******************************************************************************/
-
-/*******************************************************************************
- * Variables
- ******************************************************************************/
-volatile uint8_t updatedDutycycle = 10U;
-
-/*******************************************************************************
- * Code
- ******************************************************************************/
+// TODO change this to a interruption of a timer
 void delay(void)
 {
 	for (int i = 0; i < 10; i++)
 	{
-		for (int j = 0; j < 10000; j++);
+		for (int j = 0; j < 2000; j++);
 	}
 }
 
-/*!
- * @brief Main function
- */
 int main(void)
 {
-    tpm_config_t tpmInfo;
-    tpm_chnl_pwm_signal_param_t tpmParam[2];
-    tpm_chnl_pwm_signal_param_t tpmParamBlue[2];
+	leds_init();
 
-    /* Configure tpm params with frequency 24kHZ */
-    tpmParam[0].chnlNumber = (tpm_chnl_t)BOARD_FIRST_TPM_CHANNEL;
-    tpmParam[0].level = kTPM_LowTrue;
-    tpmParam[0].dutyCyclePercent = updatedDutycycle;
-
-    tpmParam[1].chnlNumber = (tpm_chnl_t)BOARD_SECOND_TPM_CHANNEL;
-    tpmParam[1].level = kTPM_LowTrue;
-    tpmParam[1].dutyCyclePercent = updatedDutycycle;
-
-    tpmParamBlue[0].chnlNumber = (tpm_chnl_t)BOARD_SECOND_TPM_CHANNEL;
-	tpmParamBlue[0].level = kTPM_LowTrue;
-	tpmParamBlue[0].dutyCyclePercent = updatedDutycycle;
-
-    /* Board pin, clock, debug console init */
     BOARD_InitPins();
     BOARD_BootClockRUN();
     BOARD_InitDebugConsole();
-    /* Select the clock source for the TPM counter as kCLOCK_PllFllSelClk */
-    CLOCK_SetTpmClock(1U);
+    CLOCK_SetTpmClock(1U); /* Select the clock source for the TPM counter as kCLOCK_PllFllSelClk */
 
-    /* Print a note to terminal */
-    PRINTF("\r\nTPM example to output PWM on 2 channels\r\n");
-    PRINTF("\r\nIf an LED is connected to the TPM pin, you will see a change in LED brightness if you enter different values");
-    PRINTF("\r\nIf no LED is connected to the TPM pin, then probe the signal using an oscilloscope");
+    leds_start();
 
-    leds_init();
-
-    /* Initialize TPM modules */
-    TPM_GetDefaultConfig(&tpmInfo);
-    TPM_Init(BOARD_TPM2_BASEADDR, &tpmInfo);
-    TPM_Init(BOARD_TPM0_BASEADDR, &tpmInfo);
-
-    TPM_SetupPwm(BOARD_TPM2_BASEADDR, tpmParam, 2U, kTPM_EdgeAlignedPwm, 24000U, TPM_SOURCE_CLOCK);
-    TPM_StartTimer(BOARD_TPM2_BASEADDR, kTPM_SystemClock);
-
-    TPM_SetupPwm(BOARD_TPM0_BASEADDR, tpmParamBlue, 2U, kTPM_EdgeAlignedPwm, 24000U, TPM_SOURCE_CLOCK);
-    TPM_StartTimer(BOARD_TPM0_BASEADDR, kTPM_SystemClock);
-
-    int r, g, b;
     int counter;
 
     while (1)
@@ -124,11 +64,9 @@ int main(void)
     	while (counter < 100)
     	{
     		counter++;
-    		g = 100;
-    		b = 0;
-            TPM_UpdatePwmDutycycle(BOARD_TPM2_BASEADDR, (tpm_chnl_t)BOARD_FIRST_TPM_CHANNEL, kTPM_EdgeAlignedPwm, r);
-            TPM_UpdatePwmDutycycle(BOARD_TPM2_BASEADDR, (tpm_chnl_t)BOARD_SECOND_TPM_CHANNEL, kTPM_EdgeAlignedPwm, g);
-            TPM_UpdatePwmDutycycle(BOARD_TPM0_BASEADDR, (tpm_chnl_t)BOARD_SECOND_TPM_CHANNEL, kTPM_EdgeAlignedPwm, b);
+    		leds_set_red(0);
+    		leds_set_green(100);
+    		leds_set_blue(0);
     		delay();
     	}
 
@@ -137,12 +75,9 @@ int main(void)
     	while (counter < 100)
     	{
     		counter++;
-    		g = 0;
-    		r = 100;
-    		b = 0;
-            TPM_UpdatePwmDutycycle(BOARD_TPM2_BASEADDR, (tpm_chnl_t)BOARD_FIRST_TPM_CHANNEL, kTPM_EdgeAlignedPwm, r);
-            TPM_UpdatePwmDutycycle(BOARD_TPM2_BASEADDR, (tpm_chnl_t)BOARD_SECOND_TPM_CHANNEL, kTPM_EdgeAlignedPwm, g);
-            TPM_UpdatePwmDutycycle(BOARD_TPM0_BASEADDR, (tpm_chnl_t)BOARD_SECOND_TPM_CHANNEL, kTPM_EdgeAlignedPwm, b);
+    		leds_set_red(100);
+    		leds_set_green(0);
+    		leds_set_blue(0);
     		delay();
     	}
 
@@ -151,14 +86,32 @@ int main(void)
     	while (counter < 100)
     	{
     		counter++;
-    		g = 0;
-    		r = 0;
-    		b = 100;
-            TPM_UpdatePwmDutycycle(BOARD_TPM2_BASEADDR, (tpm_chnl_t)BOARD_FIRST_TPM_CHANNEL, kTPM_EdgeAlignedPwm, r);
-            TPM_UpdatePwmDutycycle(BOARD_TPM2_BASEADDR, (tpm_chnl_t)BOARD_SECOND_TPM_CHANNEL, kTPM_EdgeAlignedPwm, g);
-            TPM_UpdatePwmDutycycle(BOARD_TPM0_BASEADDR, (tpm_chnl_t)BOARD_SECOND_TPM_CHANNEL, kTPM_EdgeAlignedPwm, b);
+    		leds_set_red(0);
+    		leds_set_green(0);
+    		leds_set_blue(100);
     		delay();
     	}
 
+        PRINTF("r/b\r\n");
+        counter = 0;
+    	while (counter < 100)
+    	{
+    		counter++;
+    		leds_set_red(100);
+    		leds_set_green(0);
+    		leds_set_blue(100);
+    		delay();
+    	}
+
+        PRINTF("r/b/g\r\n");
+        counter = 0;
+    	while (counter < 100)
+    	{
+    		counter++;
+    		leds_set_red(100);
+    		leds_set_green(100);
+    		leds_set_blue(100);
+    		delay();
+    	}
     }
 }
