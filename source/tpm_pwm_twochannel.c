@@ -31,14 +31,16 @@
 #include "fsl_debug_console.h"
 #include "board.h"
 #include "fsl_tpm.h"
-
 #include "pin_mux.h"
+
+#include "leds.h"
+
 /*******************************************************************************
  * Definitions
  ******************************************************************************/
 /* The Flextimer instance/channel used for board */
-#define BOARD_TPM_BLUE_LED_BASEADDR TPM0
-#define BOARD_TPM_BASEADDR TPM2
+#define BOARD_TPM0_BASEADDR TPM0
+#define BOARD_TPM2_BASEADDR TPM2
 #define BOARD_FIRST_TPM_CHANNEL 0U
 #define BOARD_SECOND_TPM_CHANNEL 1U
 
@@ -87,7 +89,6 @@ int main(void)
 	tpmParamBlue[0].level = kTPM_LowTrue;
 	tpmParamBlue[0].dutyCyclePercent = updatedDutycycle;
 
-
     /* Board pin, clock, debug console init */
     BOARD_InitPins();
     BOARD_BootClockRUN();
@@ -100,54 +101,62 @@ int main(void)
     PRINTF("\r\nIf an LED is connected to the TPM pin, you will see a change in LED brightness if you enter different values");
     PRINTF("\r\nIf no LED is connected to the TPM pin, then probe the signal using an oscilloscope");
 
+    leds_init();
+
     /* Initialize TPM modules */
     TPM_GetDefaultConfig(&tpmInfo);
-    TPM_Init(BOARD_TPM_BASEADDR, &tpmInfo);
-    TPM_Init(BOARD_TPM_BLUE_LED_BASEADDR, &tpmInfo);
+    TPM_Init(BOARD_TPM2_BASEADDR, &tpmInfo);
+    TPM_Init(BOARD_TPM0_BASEADDR, &tpmInfo);
 
-    TPM_SetupPwm(BOARD_TPM_BASEADDR, tpmParam, 2U, kTPM_EdgeAlignedPwm, 24000U, TPM_SOURCE_CLOCK);
-    TPM_StartTimer(BOARD_TPM_BASEADDR, kTPM_SystemClock);
+    TPM_SetupPwm(BOARD_TPM2_BASEADDR, tpmParam, 2U, kTPM_EdgeAlignedPwm, 24000U, TPM_SOURCE_CLOCK);
+    TPM_StartTimer(BOARD_TPM2_BASEADDR, kTPM_SystemClock);
 
-    TPM_SetupPwm(BOARD_TPM_BLUE_LED_BASEADDR, tpmParamBlue, 2U, kTPM_EdgeAlignedPwm, 24000U, TPM_SOURCE_CLOCK);
-    TPM_StartTimer(BOARD_TPM_BLUE_LED_BASEADDR, kTPM_SystemClock);
+    TPM_SetupPwm(BOARD_TPM0_BASEADDR, tpmParamBlue, 2U, kTPM_EdgeAlignedPwm, 24000U, TPM_SOURCE_CLOCK);
+    TPM_StartTimer(BOARD_TPM0_BASEADDR, kTPM_SystemClock);
 
     int r, g, b;
+    int counter;
 
     while (1)
     {
         PRINTF("g\r\n");
-    	while (g < 100)
+        counter = 0;
+    	while (counter < 100)
     	{
-    		r = 0;
-    		g++;
+    		counter++;
+    		g = 100;
     		b = 0;
-            TPM_UpdatePwmDutycycle(BOARD_TPM_BASEADDR, (tpm_chnl_t)BOARD_FIRST_TPM_CHANNEL, kTPM_EdgeAlignedPwm, r);
-            TPM_UpdatePwmDutycycle(BOARD_TPM_BASEADDR, (tpm_chnl_t)BOARD_SECOND_TPM_CHANNEL, kTPM_EdgeAlignedPwm, g);
-            TPM_UpdatePwmDutycycle(BOARD_TPM_BLUE_LED_BASEADDR, (tpm_chnl_t)BOARD_SECOND_TPM_CHANNEL, kTPM_EdgeAlignedPwm, b);
+            TPM_UpdatePwmDutycycle(BOARD_TPM2_BASEADDR, (tpm_chnl_t)BOARD_FIRST_TPM_CHANNEL, kTPM_EdgeAlignedPwm, r);
+            TPM_UpdatePwmDutycycle(BOARD_TPM2_BASEADDR, (tpm_chnl_t)BOARD_SECOND_TPM_CHANNEL, kTPM_EdgeAlignedPwm, g);
+            TPM_UpdatePwmDutycycle(BOARD_TPM0_BASEADDR, (tpm_chnl_t)BOARD_SECOND_TPM_CHANNEL, kTPM_EdgeAlignedPwm, b);
     		delay();
     	}
 
     	PRINTF("r\r\n");
-    	while (r < 100)
+    	counter = 0;
+    	while (counter < 100)
     	{
+    		counter++;
     		g = 0;
-    		r++;
+    		r = 100;
     		b = 0;
-            TPM_UpdatePwmDutycycle(BOARD_TPM_BASEADDR, (tpm_chnl_t)BOARD_FIRST_TPM_CHANNEL, kTPM_EdgeAlignedPwm, r);
-            TPM_UpdatePwmDutycycle(BOARD_TPM_BASEADDR, (tpm_chnl_t)BOARD_SECOND_TPM_CHANNEL, kTPM_EdgeAlignedPwm, g);
-            TPM_UpdatePwmDutycycle(BOARD_TPM_BLUE_LED_BASEADDR, (tpm_chnl_t)BOARD_SECOND_TPM_CHANNEL, kTPM_EdgeAlignedPwm, b);
+            TPM_UpdatePwmDutycycle(BOARD_TPM2_BASEADDR, (tpm_chnl_t)BOARD_FIRST_TPM_CHANNEL, kTPM_EdgeAlignedPwm, r);
+            TPM_UpdatePwmDutycycle(BOARD_TPM2_BASEADDR, (tpm_chnl_t)BOARD_SECOND_TPM_CHANNEL, kTPM_EdgeAlignedPwm, g);
+            TPM_UpdatePwmDutycycle(BOARD_TPM0_BASEADDR, (tpm_chnl_t)BOARD_SECOND_TPM_CHANNEL, kTPM_EdgeAlignedPwm, b);
     		delay();
     	}
 
     	PRINTF("b\r\n");
-    	while (b < 100)
+    	counter = 0;
+    	while (counter < 100)
     	{
+    		counter++;
     		g = 0;
     		r = 0;
-    		b++;
-            TPM_UpdatePwmDutycycle(BOARD_TPM_BASEADDR, (tpm_chnl_t)BOARD_FIRST_TPM_CHANNEL, kTPM_EdgeAlignedPwm, r);
-            TPM_UpdatePwmDutycycle(BOARD_TPM_BASEADDR, (tpm_chnl_t)BOARD_SECOND_TPM_CHANNEL, kTPM_EdgeAlignedPwm, g);
-            TPM_UpdatePwmDutycycle(BOARD_TPM_BLUE_LED_BASEADDR, (tpm_chnl_t)BOARD_SECOND_TPM_CHANNEL, kTPM_EdgeAlignedPwm, b);
+    		b = 100;
+            TPM_UpdatePwmDutycycle(BOARD_TPM2_BASEADDR, (tpm_chnl_t)BOARD_FIRST_TPM_CHANNEL, kTPM_EdgeAlignedPwm, r);
+            TPM_UpdatePwmDutycycle(BOARD_TPM2_BASEADDR, (tpm_chnl_t)BOARD_SECOND_TPM_CHANNEL, kTPM_EdgeAlignedPwm, g);
+            TPM_UpdatePwmDutycycle(BOARD_TPM0_BASEADDR, (tpm_chnl_t)BOARD_SECOND_TPM_CHANNEL, kTPM_EdgeAlignedPwm, b);
     		delay();
     	}
 
