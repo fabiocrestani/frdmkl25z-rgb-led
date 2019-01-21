@@ -19,25 +19,27 @@
 #define TPM_SOURCE_CLOCK CLOCK_GetFreq(kCLOCK_PllFllSelClk)
 
 tpm_config_t tpmInfo;
-tpm_chnl_pwm_signal_param_t tpmParam[2];
+tpm_chnl_pwm_signal_param_t tpmParamRedGreen[2];
 tpm_chnl_pwm_signal_param_t tpmParamBlue[2];
 
-const char LED_RED = 0;
-const char LED_GREEN = 1;
-const char LED_BLUE = 2;
+// For a very simple state machine
+const char state_red = 0;
+const char state_green = 1;
+const char state_blue = 2;
+char current_state;
 
 void leds_init(void)
 {
 	PRINTF("leds_init\n");
 
     /* Configure tpm params with frequency 24kHZ */
-    tpmParam[0].chnlNumber = (tpm_chnl_t)BOARD_FIRST_TPM_CHANNEL;
-    tpmParam[0].level = kTPM_LowTrue;
-    tpmParam[0].dutyCyclePercent = 0;
+    tpmParamRedGreen[0].chnlNumber = (tpm_chnl_t)BOARD_FIRST_TPM_CHANNEL;
+    tpmParamRedGreen[0].level = kTPM_LowTrue;
+    tpmParamRedGreen[0].dutyCyclePercent = 0;
 
-    tpmParam[1].chnlNumber = (tpm_chnl_t)BOARD_SECOND_TPM_CHANNEL;
-    tpmParam[1].level = kTPM_LowTrue;
-    tpmParam[1].dutyCyclePercent = 0;
+    tpmParamRedGreen[1].chnlNumber = (tpm_chnl_t)BOARD_SECOND_TPM_CHANNEL;
+    tpmParamRedGreen[1].level = kTPM_LowTrue;
+    tpmParamRedGreen[1].dutyCyclePercent = 0;
 
     tpmParamBlue[0].chnlNumber = (tpm_chnl_t)BOARD_SECOND_TPM_CHANNEL;
 	tpmParamBlue[0].level = kTPM_LowTrue;
@@ -53,11 +55,45 @@ void leds_start(void)
     TPM_Init(BOARD_TPM2_BASEADDR, &tpmInfo);
     TPM_Init(BOARD_TPM0_BASEADDR, &tpmInfo);
 
-    TPM_SetupPwm(BOARD_TPM2_BASEADDR, tpmParam, 2U, kTPM_EdgeAlignedPwm, 24000U, TPM_SOURCE_CLOCK);
+    TPM_SetupPwm(BOARD_TPM2_BASEADDR, tpmParamRedGreen, 2U, kTPM_EdgeAlignedPwm, 24000U, TPM_SOURCE_CLOCK);
     TPM_StartTimer(BOARD_TPM2_BASEADDR, kTPM_SystemClock);
 
     TPM_SetupPwm(BOARD_TPM0_BASEADDR, tpmParamBlue, 2U, kTPM_EdgeAlignedPwm, 24000U, TPM_SOURCE_CLOCK);
     TPM_StartTimer(BOARD_TPM0_BASEADDR, kTPM_SystemClock);
+
+    current_state = state_red;
+}
+
+void leds_next_state(void)
+{
+	current_state = (current_state + 1) % 3;
+
+	if (current_state == state_red)
+	{
+		PRINTF("r\r\n");
+		leds_set_red(2);
+		leds_set_green(0);
+		leds_set_blue(0);
+		return;
+	}
+
+	if (current_state == state_green)
+	{
+		PRINTF("g\r\n");
+		leds_set_red(0);
+		leds_set_green(2);
+		leds_set_blue(0);
+		return;
+	}
+
+	if (current_state == state_blue)
+	{
+		PRINTF("b\r\n");
+		leds_set_red(0);
+		leds_set_green(0);
+		leds_set_blue(2);
+		return;
+	}
 }
 
 void leds_set_red(int value)

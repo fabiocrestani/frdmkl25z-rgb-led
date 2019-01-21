@@ -8,6 +8,7 @@
 
 void leds_init(void);
 void leds_start(void);
+void leds_next_state(void);
 
 void leds_set_red(int value);
 void leds_set_green(int value);
