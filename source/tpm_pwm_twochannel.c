@@ -32,14 +32,14 @@ int main(void)
     {
     	if (tpm1IsrFlag)
 		{
-			milisecondCounts++;
+    		systick++;
 			tpm1IsrFlag = false;
 
-			if (milisecondCounts >= secondLoop)
+			if (systick >= secondLoop)
 			{
 				GPIO_TogglePinsOutput(BOARD_INITPINS_TEST_POINT_TIMER_GPIO, 1U << BOARD_INITPINS_TEST_POINT_TIMER_PIN);
 				leds_next_state();
-				milisecondCounts = 0U;
+				systick = 0U;
 			}
 
 		}
