@@ -22,11 +22,7 @@ tpm_config_t tpmInfo;
 tpm_chnl_pwm_signal_param_t tpmParamRedGreen[2];
 tpm_chnl_pwm_signal_param_t tpmParamBlue[2];
 
-// For a very simple state machine
-const char state_red = 0;
-const char state_green = 1;
-const char state_blue = 2;
-char current_state;
+uint8_t current_state;
 
 void leds_init(void)
 {
@@ -61,14 +57,19 @@ void leds_start(void)
     TPM_SetupPwm(BOARD_TPM0_BASEADDR, tpmParamBlue, 2U, kTPM_EdgeAlignedPwm, 24000U, TPM_SOURCE_CLOCK);
     TPM_StartTimer(BOARD_TPM0_BASEADDR, kTPM_SystemClock);
 
-    current_state = state_red;
+    current_state = STATE_RED;
+}
+
+uint8_t leds_get_state(void)
+{
+	return current_state;
 }
 
 void leds_next_state(void)
 {
 	current_state = (current_state + 1) % 3;
 
-	if (current_state == state_red)
+	if (current_state == STATE_RED)
 	{
 		PRINTF("r\r\n");
 		leds_set_red(2);
@@ -77,7 +78,7 @@ void leds_next_state(void)
 		return;
 	}
 
-	if (current_state == state_green)
+	if (current_state == STATE_GREEN)
 	{
 		PRINTF("g\r\n");
 		leds_set_red(0);
@@ -86,7 +87,7 @@ void leds_next_state(void)
 		return;
 	}
 
-	if (current_state == state_blue)
+	if (current_state == STATE_BLUE)
 	{
 		PRINTF("b\r\n");
 		leds_set_red(0);
@@ -96,17 +97,17 @@ void leds_next_state(void)
 	}
 }
 
-void leds_set_red(int value)
+void leds_set_red(uint8_t value)
 {
 	TPM_UpdatePwmDutycycle(BOARD_TPM2_BASEADDR, (tpm_chnl_t)BOARD_FIRST_TPM_CHANNEL, kTPM_EdgeAlignedPwm, value);
 }
 
-void leds_set_green(int value)
+void leds_set_green(uint8_t value)
 {
 	TPM_UpdatePwmDutycycle(BOARD_TPM2_BASEADDR, (tpm_chnl_t)BOARD_SECOND_TPM_CHANNEL, kTPM_EdgeAlignedPwm, value);
 }
 
-void leds_set_blue(int value)
+void leds_set_blue(uint8_t value)
 {
 	TPM_UpdatePwmDutycycle(BOARD_TPM0_BASEADDR, (tpm_chnl_t)BOARD_SECOND_TPM_CHANNEL, kTPM_EdgeAlignedPwm, value);
 }
