@@ -5,6 +5,10 @@
  * Author: Fabio Crestani
  */
 
+// Force loop unrolling to improve speed
+#pragma GCC push_options
+#pragma GCC optimize ("unroll-loops")
+
 #include "fsl_debug_console.h"
 #include "board.h"
 #include "fsl_tpm.h"
@@ -25,9 +29,8 @@ const uint32_t NUMBER_OF_LEDS = 8;
 #define T0L (850)
 #define RES (100 * 1000)
 
-void bit0(void);
-void bit1(void);
-void reset(void);
+static inline void set_bit(uint8_t value);
+static inline void reset(void);
 static inline void wait_ns(uint32_t time);
 static inline void set_pin(uint8_t value);
 
@@ -99,28 +102,52 @@ void ws2812b_set_blue(uint8_t value)
 void ws2812b_set(uint8_t green, uint8_t red, uint8_t blue)
 {
 	reset();
-	// TODO send color data
+
+	uint8_t bit;
+	uint8_t c;
+
+	for (c = 8; c > 0; c--)
+	{
+		bit = (green >> (c-1)) & 0x01;
+		set_bit(bit);
+	}
+
+	for (c = 8; c > 0; c--)
+	{
+		bit = (red >> (c-1)) & 0x01;
+		set_bit(bit);
+	}
+
+	for (c = 8; c > 0; c--)
+	{
+		bit = (blue >> (c-1)) & 0x01;
+		set_bit(bit);
+	}
+
+	reset();
 }
 
-// 0 code = T0H + T0L
-void bit0(void)
+inline void set_bit(uint8_t value)
 {
-	set_pin(HIGH);
-	wait_ns(T0H);
-	set_pin(LOW);
-	wait_ns(T0L);
+	// 0 code = T0H + T0L
+	if (value == 0)
+	{
+		set_pin(HIGH);
+		wait_ns(T0H);
+		set_pin(LOW);
+		wait_ns(T0L);
+	}
+	else
+	// 1 code = T1H + T1L
+	{
+		set_pin(HIGH);
+		wait_ns(T1H);
+		set_pin(LOW);
+		wait_ns(T1L);
+	}
 }
 
-// 1 code = T1H + T1L
-void bit1(void)
-{
-	set_pin(HIGH);
-	wait_ns(T1H);
-	set_pin(LOW);
-	wait_ns(T1L);
-}
-
-void reset(void)
+inline void reset(void)
 {
 	set_pin(LOW);
 	wait_ns(RES);
@@ -129,6 +156,7 @@ void reset(void)
 
 inline void wait_ns(uint32_t time)
 {
+	return;
 	// TODO convert 'time' to match the real time
 	uint32_t counter;
 	while (counter++ < time)
@@ -139,5 +167,9 @@ inline void wait_ns(uint32_t time)
 
 inline void set_pin(uint8_t value)
 {
-	// TODO
+	// TODO set pin
+	// TODO replace with a macro ?
 }
+
+
+#pragma GCC pop_options
