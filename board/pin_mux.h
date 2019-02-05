@@ -67,6 +67,13 @@ void BOARD_InitBootPins(void);
 #define BOARD_INITPINS_TEST_POINT_TIMER_PIN 1U     /*!<@brief PORTC pin index: 1 */
                                                    /* @} */
 
+/*! @name PORTB0 (number 43), J10[2]/A0
+  @{ */
+#define BOARD_INITPINS_DATA_OUTPUT_GPIO GPIOB /*!<@brief GPIO device name: GPIOB */
+#define BOARD_INITPINS_DATA_OUTPUT_PORT PORTB /*!<@brief PORT device name: PORTB */
+#define BOARD_INITPINS_DATA_OUTPUT_PIN 0U     /*!<@brief PORTB pin index: 0 */
+                                              /* @} */
+
 /*!
  * @brief Configures pin routing and optionally pin electrical features.
  *

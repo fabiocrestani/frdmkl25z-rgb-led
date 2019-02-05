@@ -13,11 +13,17 @@
 #include "fsl_tpm.h"
 #include "pin_mux.h"
 
+
+
 void ws2812b_init(void);
 void ws2812b_next_state(void);
 void ws2812b_set_red(uint8_t value);
 void ws2812b_set_green(uint8_t value);
 void ws2812b_set_blue(uint8_t value);
 void ws2812b_set(uint8_t green, uint8_t red, uint8_t blue);
+
+void ws2812b_set_leds_green(void);
+void ws2812b_set_leds_red(void);
+void ws2812b_set_leds_blue(void);
 
 #endif // __WS2812B_H__

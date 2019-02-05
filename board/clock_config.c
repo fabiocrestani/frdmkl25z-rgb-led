@@ -33,11 +33,11 @@
 /* clang-format off */
 /* TEXT BELOW IS USED AS SETTING FOR TOOLS *************************************
 !!GlobalInfo
-product: Clocks v4.1
+product: Clocks v5.0
 processor: MKL25Z128xxx4
 package_id: MKL25Z128VLK4
 mcu_data: ksdk2_0
-processor_version: 4.0.0
+processor_version: 5.0.0
 board: FRDM-KL25Z
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS **********/
 /* clang-format on */
@@ -112,8 +112,8 @@ settings:
 - {id: MCG.VDIV.scale, value: '24', locked: true}
 - {id: MCG_C1_IRCLKEN_CFG, value: Enabled}
 - {id: MCG_C2_OSC_MODE_CFG, value: ModeOscLowPower}
-- {id: MCG_C2_RANGE0_CFG, value: High}
-- {id: MCG_C2_RANGE0_FRDIV_CFG, value: High}
+- {id: MCG_C2_RANGE0_CFG, value: Very_high}
+- {id: MCG_C2_RANGE0_FRDIV_CFG, value: Very_high}
 - {id: OSC0_CR_ERCLKEN_CFG, value: Enabled}
 - {id: OSC_CR_ERCLKEN_CFG, value: Enabled}
 - {id: SIM.CLKOUTSEL.sel, value: SIM.OUTDIV4}

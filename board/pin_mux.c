@@ -7,13 +7,14 @@
 /*
  * TEXT BELOW IS USED AS SETTING FOR TOOLS *************************************
 !!GlobalInfo
-product: Pins v4.1
+product: Pins v5.0
 processor: MKL25Z128xxx4
 package_id: MKL25Z128VLK4
 mcu_data: ksdk2_0
-processor_version: 4.0.0
+processor_version: 5.0.0
 board: FRDM-KL25Z
 pin_labels:
+- {pin_num: '43', pin_signal: ADC0_SE8/TSI0_CH0/PTB0/LLWU_P5/I2C0_SCL/TPM1_CH0, label: 'J10[2]/A0', identifier: DATA_OUTPUT}
 - {pin_num: '56', pin_signal: ADC0_SE15/TSI0_CH14/PTC1/LLWU_P6/RTC_CLKIN/I2C1_SCL/TPM0_CH0, label: 'J10[12]/U6[31]/A5', identifier: TEST_POINT_TIMER}
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS ***********
  */
@@ -48,6 +49,7 @@ BOARD_InitPins:
   - {pin_num: '74', peripheral: TPM0, signal: 'CH, 1', pin_signal: ADC0_SE5b/PTD1/SPI0_SCK/TPM0_CH1}
   - {pin_num: '32', peripheral: TPM1, signal: 'CH, 0', pin_signal: PTA12/TPM1_CH0}
   - {pin_num: '56', peripheral: GPIOC, signal: 'GPIO, 1', pin_signal: ADC0_SE15/TSI0_CH14/PTC1/LLWU_P6/RTC_CLKIN/I2C1_SCL/TPM0_CH0, direction: OUTPUT, gpio_init_state: 'false'}
+  - {pin_num: '43', peripheral: GPIOB, signal: 'GPIO, 0', pin_signal: ADC0_SE8/TSI0_CH0/PTB0/LLWU_P5/I2C0_SCL/TPM1_CH0, direction: OUTPUT, gpio_init_state: 'true'}
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS ***********
  */
 /* clang-format on */
@@ -69,6 +71,13 @@ void BOARD_InitPins(void)
     /* Port D Clock Gate Control: Clock enabled */
     CLOCK_EnableClock(kCLOCK_PortD);
 
+    gpio_pin_config_t DATA_OUTPUT_config = {
+        .pinDirection = kGPIO_DigitalOutput,
+        .outputLogic = 1U
+    };
+    /* Initialize GPIO functionality on pin PTB0 (pin 43)  */
+    GPIO_PinInit(BOARD_INITPINS_DATA_OUTPUT_GPIO, BOARD_INITPINS_DATA_OUTPUT_PIN, &DATA_OUTPUT_config);
+
     gpio_pin_config_t TEST_POINT_TIMER_config = {
         .pinDirection = kGPIO_DigitalOutput,
         .outputLogic = 0U
@@ -84,6 +93,9 @@ void BOARD_InitPins(void)
 
     /* PORTA2 (pin 28) is configured as UART0_TX */
     PORT_SetPinMux(BOARD_INITPINS_DEBUG_UART_TX_PORT, BOARD_INITPINS_DEBUG_UART_TX_PIN, kPORT_MuxAlt2);
+
+    /* PORTB0 (pin 43) is configured as PTB0 */
+    PORT_SetPinMux(BOARD_INITPINS_DATA_OUTPUT_PORT, BOARD_INITPINS_DATA_OUTPUT_PIN, kPORT_MuxAsGpio);
 
     /* PORTB18 (pin 53) is configured as TPM2_CH0 */
     PORT_SetPinMux(BOARD_INITPINS_LED_RED_PORT, BOARD_INITPINS_LED_RED_PIN, kPORT_MuxAlt3);

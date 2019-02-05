@@ -14,7 +14,9 @@
 
 int main(void)
 {
-	uint32_t secondLoop = 1000 * (1000 / TPM1_PERIOD_US);
+	// This is the adjusted time to trigger the timer every one second
+	uint32_t empirical_adjust = 290;
+	uint32_t secondLoop = (2 * 1000 * (1000 / TPM1_PERIOD_US)) + empirical_adjust;
 
 	leds_init();
 	timer_init();	// Edit timer.h to set the timer period
@@ -37,17 +39,16 @@ int main(void)
     		timer_counter++;
 			tpm1IsrFlag = false;
 
-			// For measuring the period of the timer
-			GPIO_TogglePinsOutput(BOARD_INITPINS_TEST_POINT_TIMER_GPIO, 1U << BOARD_INITPINS_TEST_POINT_TIMER_PIN);
-
 			// The next block must execute before the next timer trigger
 			if (timer_counter >= secondLoop)
 			{
+				// For measuring the period of the timer
+				GPIO_TogglePinsOutput(BOARD_INITPINS_TEST_POINT_TIMER_GPIO, 1U << BOARD_INITPINS_TEST_POINT_TIMER_PIN);
+
 				leds_next_state();
 				ws2812b_next_state();
 				timer_counter = 0U;
 			}
-
 		}
 		__WFI();
     }
